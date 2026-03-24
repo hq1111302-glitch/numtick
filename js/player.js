@@ -81,12 +81,46 @@ class Player {
         this.homingLevel = 0;
         this.aoeRadius = 0;
 
+        this.weapons = {};
+        this.synergies = {};
+
         this.orbitalCount = 0;
         this.orbitals = [];
+        this.orbitalDamageMult = 1;
+        this.orbitalKnockback = 2;
 
         this.lightningLevel = 0;
         this.lightningCooldown = 0;
         this.lightningCooldownMax = 180;
+        this.lightningChains = 0;
+        this.lightningTargets = 1;
+
+        this.missileCount = 0;
+        this.missileCooldown = 0;
+        this.missileCooldownMax = 180;
+        this.missileAoe = 40;
+
+        this.laserLevel = 0;
+        this.laserCooldown = 0;
+        this.laserCooldownMax = 300;
+        this.laserDuration = 0;
+        this.laserActive = 0;
+        this.laserAngle = 0;
+        this.laserWidth = 8;
+        this.laserBeams = 1;
+
+        this.flameLevel = 0;
+        this.flameCooldown = 0;
+        this.flameCooldownMax = 120;
+        this.flameDuration = 0;
+        this.flameActive = 0;
+        this.flameRange = 80;
+        this.flameAngle = Math.PI * 0.4;
+
+        this.frostLevel = 0;
+        this.frostRange = 0;
+        this.frostSlow = 0;
+        this.frostDps = 0;
 
         this.magnetRange = 80;
         this.invincible = 0;
@@ -154,6 +188,11 @@ class Player {
         }
 
         this.lightningCooldown = Math.max(0, this.lightningCooldown - 1);
+        this.missileCooldown = Math.max(0, this.missileCooldown - 1);
+        this.laserCooldown = Math.max(0, this.laserCooldown - 1);
+        this.laserActive = Math.max(0, this.laserActive - 1);
+        this.flameCooldown = Math.max(0, this.flameCooldown - 1);
+        this.flameActive = Math.max(0, this.flameActive - 1);
 
         this.updateOrbitals();
     }
@@ -284,6 +323,13 @@ class Player {
         ctx.restore();
     }
 
+    canMissile() { return this.missileCount > 0 && this.missileCooldown <= 0; }
+    resetMissileCooldown() { this.missileCooldown = this.missileCooldownMax; }
+    canLaser() { return this.laserLevel > 0 && this.laserCooldown <= 0 && this.laserActive <= 0; }
+    resetLaserCooldown() { this.laserCooldown = this.laserCooldownMax; }
+    canFlame() { return this.flameLevel > 0 && this.flameCooldown <= 0 && this.flameActive <= 0; }
+    resetFlameCooldown() { this.flameCooldown = this.flameCooldownMax; }
+
     reset(x, y) {
         this.x = x;
         this.y = y;
@@ -307,11 +353,40 @@ class Player {
         this.projectileSpeed = 8;
         this.homingLevel = 0;
         this.aoeRadius = 0;
+        this.weapons = {};
+        this.synergies = {};
         this.orbitalCount = 0;
         this.orbitals = [];
+        this.orbitalDamageMult = 1;
+        this.orbitalKnockback = 2;
         this.lightningLevel = 0;
         this.lightningCooldown = 0;
         this.lightningCooldownMax = 180;
+        this.lightningChains = 0;
+        this.lightningTargets = 1;
+        this.missileCount = 0;
+        this.missileCooldown = 0;
+        this.missileCooldownMax = 180;
+        this.missileAoe = 40;
+        this.laserLevel = 0;
+        this.laserCooldown = 0;
+        this.laserCooldownMax = 300;
+        this.laserDuration = 0;
+        this.laserActive = 0;
+        this.laserAngle = 0;
+        this.laserWidth = 8;
+        this.laserBeams = 1;
+        this.flameLevel = 0;
+        this.flameCooldown = 0;
+        this.flameCooldownMax = 120;
+        this.flameDuration = 0;
+        this.flameActive = 0;
+        this.flameRange = 80;
+        this.flameAngle = Math.PI * 0.4;
+        this.frostLevel = 0;
+        this.frostRange = 0;
+        this.frostSlow = 0;
+        this.frostDps = 0;
         this.hpRegen = 0;
         this.magnetRange = 80;
         this.kills = 0;

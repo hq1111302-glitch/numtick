@@ -135,6 +135,12 @@ class Enemy {
         }
 
         this.animPhase = Math.random() * Math.PI * 2;
+
+        this.slowAmount = 0;
+        this.slowTimer = 0;
+        this.frosted = false;
+        this.burning = false;
+        this.burnTimer = 0;
     }
 
     update(playerX, playerY) {
@@ -159,8 +165,9 @@ class Enemy {
             this.exploding = true;
         }
 
-        this.x += this.vx + this.knockbackX;
-        this.y += this.vy + this.knockbackY;
+        const slowMult = this.slowAmount > 0 ? (1 - this.slowAmount) : 1;
+        this.x += (this.vx * slowMult) + this.knockbackX;
+        this.y += (this.vy * slowMult) + this.knockbackY;
 
         if (this.type === 'ranged') {
             this.shootTimer--;
@@ -187,9 +194,15 @@ class Enemy {
         if (this.hitFlash > 0) {
             ctx.shadowColor = '#fff';
             ctx.shadowBlur = 20;
+        } else if (this.frosted) {
+            ctx.shadowColor = '#88ddff';
+            ctx.shadowBlur = 12;
+        } else if (this.burning) {
+            ctx.shadowColor = '#ff6622';
+            ctx.shadowBlur = 12;
         }
 
-        ctx.fillStyle = this.hitFlash > 0 ? '#fff' : this.bodyColor;
+        ctx.fillStyle = this.hitFlash > 0 ? '#fff' : this.frosted ? '#88ccdd' : this.burning ? '#ff8855' : this.bodyColor;
         ctx.beginPath();
         ctx.arc(this.x, this.y + bob, this.size, 0, Math.PI * 2);
         ctx.fill();
