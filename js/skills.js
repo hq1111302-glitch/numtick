@@ -337,31 +337,39 @@ class SkillManager {
         if (this.upgradesUsed >= MAX_UPGRADES) return [];
 
         const pool = [];
+        const focused = this.upgradesUsed >= 10;
 
         for (const [id, def] of Object.entries(WeaponDefinitions)) {
             const lvl = this.weapons[id] || 0;
             if (lvl >= def.maxLevel) continue;
 
             const isOwned = lvl > 0;
+            let weight;
+            if (focused) {
+                weight = isOwned ? 4 : 0.6;
+            } else {
+                weight = isOwned ? 1.8 : 1.2;
+            }
+
             pool.push({
                 category: 'weapon', id, icon: def.icon, name: def.name,
                 description: def.description(lvl + 1),
                 currentLevel: lvl, maxLevel: def.maxLevel,
-                weight: isOwned ? 2 : 1.2,
-                isNew: !isOwned
+                weight, isNew: !isOwned
             });
         }
 
         for (const [id, def] of Object.entries(PassiveUpgrades)) {
             const lvl = this.passives[id] || 0;
-            if (lvl < def.maxLevel) {
-                pool.push({
-                    category: 'passive', id, icon: def.icon, name: def.name,
-                    description: def.description(lvl + 1),
-                    currentLevel: lvl, maxLevel: def.maxLevel,
-                    weight: 0.8
-                });
-            }
+            if (lvl >= def.maxLevel) continue;
+
+            const isOwned = lvl > 0;
+            pool.push({
+                category: 'passive', id, icon: def.icon, name: def.name,
+                description: def.description(lvl + 1),
+                currentLevel: lvl, maxLevel: def.maxLevel,
+                weight: focused ? (isOwned ? 1.5 : 0.5) : 0.8
+            });
         }
 
         const pendingSynergies = SynergyDefinitions.filter(syn => {
@@ -377,7 +385,7 @@ class SkillManager {
             const missing = (this.weapons[w1] || 0) === 0 ? w1 : w2;
             const existing = pool.find(p => p.id === missing && p.category === 'weapon');
             if (existing) {
-                existing.weight += 1.5;
+                existing.weight += focused ? 1 : 1.5;
                 existing.synergyHint = syn.name;
             }
         }
