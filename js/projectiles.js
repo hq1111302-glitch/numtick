@@ -120,12 +120,25 @@ class OrbitalProjectile {
 
     draw(ctx) {
         ctx.save();
+
+        if (this.total > 1) {
+            const arcSpan = Math.PI * 2 / this.total;
+            const startA = this.angle - arcSpan * 0.4;
+            const endA = this.angle + arcSpan * 0.4;
+            ctx.strokeStyle = `rgba(136, 204, 255, 0.15)`;
+            ctx.lineWidth = this.size * 1.8;
+            ctx.beginPath();
+            ctx.arc(this.player.x, this.player.y, this.orbitRadius, startA, endA);
+            ctx.stroke();
+        }
+
         ctx.shadowColor = this.color;
         ctx.shadowBlur = 15;
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
+
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);

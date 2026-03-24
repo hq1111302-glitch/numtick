@@ -29,9 +29,9 @@ const SkillDefinitions = {
     },
     orbital: {
         icon: '🛡️',
-        name: '회전 구체',
+        name: '회전 방패',
         maxLevel: 5,
-        description: (lvl) => `회전하는 구체 ${lvl}개 소환`,
+        description: (lvl) => `회전 구체 ${lvl}개 (적 탄환 차단 + 접촉 데미지)`,
         effect: (player, lvl) => { player.orbitalCount = lvl; }
     },
     hpRegen: {

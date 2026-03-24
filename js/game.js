@@ -468,6 +468,22 @@ class Game {
         }
 
         for (const proj of this.enemyProjectiles) {
+            if (proj.life <= 0) continue;
+
+            let blocked = false;
+            for (const orb of this.player.orbitals) {
+                if (Utils.circleCollision(proj.x, proj.y, proj.size, orb.x, orb.y, orb.size + 4)) {
+                    proj.life = 0;
+                    blocked = true;
+                    this.particleSystem.emitCircle(proj.x, proj.y, 6, 3, {
+                        color: '#88ccff', life: 12, size: 2, glow: true
+                    });
+                    this.particleSystem.showDamage(proj.x, proj.y - 10, '막음!', '#88ccff');
+                    break;
+                }
+            }
+            if (blocked) continue;
+
             if (Utils.circleCollision(proj.x, proj.y, proj.size, this.player.x, this.player.y, this.player.size)) {
                 const dmg = this.player.takeDamage(proj.damage);
                 if (dmg > 0) {
