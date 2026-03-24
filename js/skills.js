@@ -294,28 +294,31 @@ const PassiveUpgrades = {
     }
 };
 
-const MAX_WEAPONS = 4;
+const MAX_UPGRADES = 20;
 
 class SkillManager {
     constructor() {
         this.weapons = {};
         this.passives = {};
         this.activeSynergies = new Set();
+        this.upgradesUsed = 0;
     }
 
     getWeaponLevel(id) { return this.weapons[id] || 0; }
     getPassiveLevel(id) { return this.passives[id] || 0; }
-    getOwnedWeaponCount() { return Object.values(this.weapons).filter(v => v > 0).length; }
-    getOwnedWeaponIds() { return Object.keys(this.weapons).filter(id => this.weapons[id] > 0); }
+    getUpgradesRemaining() { return MAX_UPGRADES - this.upgradesUsed; }
+    getTotalWeaponLevels() { return Object.values(this.weapons).reduce((s, v) => s + v, 0); }
 
     upgradeWeapon(id, player) {
         this.weapons[id] = (this.weapons[id] || 0) + 1;
+        this.upgradesUsed++;
         WeaponDefinitions[id].apply(player, this.weapons[id]);
         this._checkSynergies(player);
     }
 
     upgradePassive(id, player) {
         this.passives[id] = (this.passives[id] || 0) + 1;
+        this.upgradesUsed++;
         PassiveUpgrades[id].apply(player, this.passives[id]);
     }
 
@@ -331,22 +334,20 @@ class SkillManager {
     }
 
     getRandomChoices(count = 3) {
+        if (this.upgradesUsed >= MAX_UPGRADES) return [];
+
         const pool = [];
-        const ownedWeapons = this.getOwnedWeaponIds();
-        const atWeaponCap = ownedWeapons.length >= MAX_WEAPONS;
 
         for (const [id, def] of Object.entries(WeaponDefinitions)) {
             const lvl = this.weapons[id] || 0;
             if (lvl >= def.maxLevel) continue;
 
             const isOwned = lvl > 0;
-            if (!isOwned && atWeaponCap) continue;
-
             pool.push({
                 category: 'weapon', id, icon: def.icon, name: def.name,
                 description: def.description(lvl + 1),
                 currentLevel: lvl, maxLevel: def.maxLevel,
-                weight: isOwned ? 2.5 : 1.5,
+                weight: isOwned ? 2 : 1.2,
                 isNew: !isOwned
             });
         }
@@ -358,28 +359,26 @@ class SkillManager {
                     category: 'passive', id, icon: def.icon, name: def.name,
                     description: def.description(lvl + 1),
                     currentLevel: lvl, maxLevel: def.maxLevel,
-                    weight: 1
+                    weight: 0.8
                 });
             }
         }
 
-        if (!atWeaponCap) {
-            const pendingSynergies = SynergyDefinitions.filter(syn => {
-                if (this.activeSynergies.has(syn.id)) return false;
-                const [w1, w2] = syn.weapons;
-                const l1 = this.weapons[w1] || 0;
-                const l2 = this.weapons[w2] || 0;
-                return (l1 >= 1 && l2 === 0) || (l2 >= 1 && l1 === 0);
-            });
+        const pendingSynergies = SynergyDefinitions.filter(syn => {
+            if (this.activeSynergies.has(syn.id)) return false;
+            const [w1, w2] = syn.weapons;
+            const l1 = this.weapons[w1] || 0;
+            const l2 = this.weapons[w2] || 0;
+            return (l1 >= 1 && l2 === 0) || (l2 >= 1 && l1 === 0);
+        });
 
-            for (const syn of pendingSynergies) {
-                const [w1, w2] = syn.weapons;
-                const missing = (this.weapons[w1] || 0) === 0 ? w1 : w2;
-                const existing = pool.find(p => p.id === missing && p.category === 'weapon');
-                if (existing) {
-                    existing.weight += 1.5;
-                    existing.synergyHint = syn.name;
-                }
+        for (const syn of pendingSynergies) {
+            const [w1, w2] = syn.weapons;
+            const missing = (this.weapons[w1] || 0) === 0 ? w1 : w2;
+            const existing = pool.find(p => p.id === missing && p.category === 'weapon');
+            if (existing) {
+                existing.weight += 1.5;
+                existing.synergyHint = syn.name;
             }
         }
 
@@ -414,5 +413,6 @@ class SkillManager {
         this.weapons = {};
         this.passives = {};
         this.activeSynergies = new Set();
+        this.upgradesUsed = 0;
     }
 }

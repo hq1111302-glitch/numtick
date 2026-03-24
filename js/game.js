@@ -836,8 +836,10 @@ class Game {
 
     // ==================== LEVEL UP ====================
     _onLevelUp() {
-        this.state = 'levelup';
         const choices = this.skillManager.getRandomChoices(3);
+        if (choices.length === 0) return;
+
+        this.state = 'levelup';
         this._showSkillSelection(choices);
         this.particleSystem.emitCircle(this.player.x, this.player.y, 24, 5, { color: '#ffd700', life: 30, size: 4, glow: true });
     }
@@ -846,10 +848,12 @@ class Game {
         const container = document.getElementById('skill-options');
         container.innerHTML = '';
 
-        const owned = this.skillManager.getOwnedWeaponCount();
+        const remaining = this.skillManager.getUpgradesRemaining();
+        const used = this.skillManager.upgradesUsed;
+        const urgencyClass = remaining <= 3 ? 'urgent' : remaining <= 7 ? 'warning' : '';
         const slotInfo = document.createElement('div');
-        slotInfo.className = 'weapon-slot-info';
-        slotInfo.innerHTML = `무기 슬롯: <strong>${owned}</strong> / ${MAX_WEAPONS}`;
+        slotInfo.className = `weapon-slot-info ${urgencyClass}`;
+        slotInfo.innerHTML = `강화 <strong>${used}</strong>/${MAX_UPGRADES} — 남은 선택 <strong>${remaining}</strong>회`;
         container.appendChild(slotInfo);
 
         choices.forEach(choice => {

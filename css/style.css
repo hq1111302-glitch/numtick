@@ -698,6 +698,19 @@ body {
     color: #4ecdc4;
 }
 
+.weapon-slot-info.warning strong {
+    color: #f39c12;
+}
+
+.weapon-slot-info.urgent {
+    background: rgba(255, 50, 50, 0.1);
+    border: 1px solid rgba(255, 50, 50, 0.3);
+}
+
+.weapon-slot-info.urgent strong {
+    color: #ff4444;
+}
+
 .new-badge {
     display: inline-block;
     padding: 1px 6px;
