@@ -4,8 +4,7 @@ class Game {
         this.ctx = canvas.getContext('2d');
         this.resize();
 
-        this.WORLD_WIDTH = 1600;
-        this.WORLD_HEIGHT = 1600;
+        // infinite map — no fixed world size
 
         this.keys = {};
         this.joystick = null;
@@ -34,7 +33,7 @@ class Game {
         this.gameTime = 0;
         this.goldEarned = 0;
 
-        this.player = new Player(this.WORLD_WIDTH / 2, this.WORLD_HEIGHT / 2);
+        this.player = new Player(0, 0);
         this.skillManager = new SkillManager();
         this.particleSystem = new ParticleSystem();
 
@@ -101,7 +100,7 @@ class Game {
         this.flameFields = [];
         this.spawnTimer = 0;
 
-        this.player.reset(this.WORLD_WIDTH / 2, this.WORLD_HEIGHT / 2);
+        this.player.reset(0, 0);
         this.skillManager.reset();
         this.particleSystem.clear();
         applyUpgradesToPlayer(this.player);
@@ -131,7 +130,7 @@ class Game {
         this.gameTime++;
 
         const joyDir = this.joystick ? this.joystick.getDirection() : { x: 0, y: 0 };
-        this.player.update(this.keys, this.WORLD_WIDTH, this.WORLD_HEIGHT, joyDir);
+        this.player.update(this.keys, Infinity, Infinity, joyDir);
 
         this._updateCamera();
         this._handleWaveSystem();
@@ -158,8 +157,6 @@ class Game {
         const ty = this.player.y - this.screenH / 2;
         this.camera.x = Utils.lerp(this.camera.x, tx, 0.1);
         this.camera.y = Utils.lerp(this.camera.y, ty, 0.1);
-        this.camera.x = Utils.clamp(this.camera.x, 0, Math.max(0, this.WORLD_WIDTH - this.screenW));
-        this.camera.y = Utils.clamp(this.camera.y, 0, Math.max(0, this.WORLD_HEIGHT - this.screenH));
     }
 
     // ==================== WAVE SYSTEM ====================
@@ -254,8 +251,6 @@ class Game {
 
         const type = pool[this.waveEnemiesSpawned];
         const pos = Utils.randomPointOnCircle(this.player.x, this.player.y, dist + Utils.randomRange(0, 80));
-        pos.x = Utils.clamp(pos.x, 30, this.WORLD_WIDTH - 30);
-        pos.y = Utils.clamp(pos.y, 30, this.WORLD_HEIGHT - 30);
 
         const sf = 1 + this.currentChapter * 0.4 + this.currentStage * 0.1 + (this.isEndless ? this.endlessDifficulty * 0.3 : 0);
         this.enemies.push(new Enemy(pos.x, pos.y, type, sf));
@@ -300,8 +295,6 @@ class Game {
         const bossConf = this.stageConfig.boss;
         const sf = 1 + this.currentChapter * 0.5 + this.currentStage * 0.15 + (this.isEndless ? this.endlessDifficulty * 0.5 : 0);
         const pos = Utils.randomPointOnCircle(this.player.x, this.player.y, 450);
-        pos.x = Utils.clamp(pos.x, 80, this.WORLD_WIDTH - 80);
-        pos.y = Utils.clamp(pos.y, 80, this.WORLD_HEIGHT - 80);
         const boss = new Boss(pos.x, pos.y, bossConf.type, sf);
         boss.name = bossConf.name + (this.isEndless ? ` (×${Math.floor(this.endlessDifficulty * 10) / 10})` : '');
         this.enemies.push(boss);
@@ -461,13 +454,16 @@ class Game {
 
     // ==================== UPDATES ====================
     _updateProjectiles() {
+        const cullDist = Math.max(this.screenW, this.screenH) + 200;
         this.projectiles = this.projectiles.filter(p => {
             p.update(this.enemies);
-            return !(p.x < -50 || p.x > this.WORLD_WIDTH + 50 || p.y < -50 || p.y > this.WORLD_HEIGHT + 50 || p.isDead);
+            if (p.isDead) return false;
+            return Utils.distance(p.x, p.y, this.player.x, this.player.y) < cullDist;
         });
         this.enemyProjectiles = this.enemyProjectiles.filter(p => {
             p.update([]);
-            return !(p.x < -50 || p.x > this.WORLD_WIDTH + 50 || p.y < -50 || p.y > this.WORLD_HEIGHT + 50 || p.isDead);
+            if (p.isDead) return false;
+            return Utils.distance(p.x, p.y, this.player.x, this.player.y) < cullDist;
         });
         this.lightningBolts = this.lightningBolts.filter(lb => { lb.update(); return !lb.isDead; });
     }
@@ -507,7 +503,12 @@ class Game {
                 this._handleBossAbility(enemy, enemy.useAbility(this.player.x, this.player.y));
             }
         }
-        this.enemies = this.enemies.filter(e => e.alive);
+        const despawnDist = Math.max(this.screenW, this.screenH) * 1.5;
+        this.enemies = this.enemies.filter(e => {
+            if (!e.alive) return false;
+            if (Utils.distance(e.x, e.y, this.player.x, this.player.y) > despawnDist && !e.isBoss) return false;
+            return true;
+        });
     }
 
     _handleBossAbility(boss, ability) {
@@ -534,8 +535,8 @@ class Game {
             case 'teleport': {
                 this.particleSystem.emitCircle(boss.x, boss.y, 15, 3, { color: '#aa44ff', life: 20, size: 4 });
                 const a = Math.random() * Math.PI * 2;
-                boss.x = Utils.clamp(ability.targetX + Math.cos(a) * 150, 60, this.WORLD_WIDTH - 60);
-                boss.y = Utils.clamp(ability.targetY + Math.sin(a) * 150, 60, this.WORLD_HEIGHT - 60);
+                boss.x = ability.targetX + Math.cos(a) * 150;
+                boss.y = ability.targetY + Math.sin(a) * 150;
                 this.particleSystem.emitCircle(boss.x, boss.y, 15, 3, { color: '#aa44ff', life: 20, size: 4 });
                 break;
             }
@@ -556,7 +557,9 @@ class Game {
     }
 
     _updateExpOrbs() {
+        const orbCullDist = Math.max(this.screenW, this.screenH) * 1.2;
         this.expOrbs = this.expOrbs.filter(orb => {
+            if (Utils.distance(orb.x, orb.y, this.player.x, this.player.y) > orbCullDist) return false;
             const gained = orb.update(this.player.x, this.player.y, this.player.magnetRange);
             if (gained > 0) {
                 const actual = Math.round(gained * (this.player.expMult || 1));
@@ -996,20 +999,34 @@ class Game {
     }
 
     _drawBackground(ctx) {
-        const c = this.chapterConfig || { bgColor1:'#1e1e3a', bgColor2:'#0a0a1e', gridColor:'rgba(255,255,255,0.03)', borderColor:'rgba(255,50,50,0.4)' };
-        const g = ctx.createRadialGradient(this.WORLD_WIDTH/2, this.WORLD_HEIGHT/2, 200, this.WORLD_WIDTH/2, this.WORLD_HEIGHT/2, this.WORLD_WIDTH);
-        g.addColorStop(0, c.bgColor1); g.addColorStop(1, c.bgColor2);
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, this.WORLD_WIDTH, this.WORLD_HEIGHT);
+        const c = this.chapterConfig || { bgColor1:'#1e1e3a', bgColor2:'#0a0a1e', gridColor:'rgba(255,255,255,0.03)' };
 
-        ctx.strokeStyle = c.gridColor; ctx.lineWidth = 1;
+        const cx = this.player.x;
+        const cy = this.player.y;
+        const halfW = this.screenW / 2 + 100;
+        const halfH = this.screenH / 2 + 100;
+        const left = cx - halfW;
+        const top = cy - halfH;
+        const right = cx + halfW;
+        const bottom = cy + halfH;
+
+        const g = ctx.createRadialGradient(cx, cy, 100, cx, cy, Math.max(halfW, halfH));
+        g.addColorStop(0, c.bgColor1);
+        g.addColorStop(1, c.bgColor2);
+        ctx.fillStyle = g;
+        ctx.fillRect(left, top, right - left, bottom - top);
+
+        ctx.strokeStyle = c.gridColor;
+        ctx.lineWidth = 1;
         const gs = 80;
-        const sx = Math.floor(this.camera.x/gs)*gs, sy = Math.floor(this.camera.y/gs)*gs;
-        const ex = sx+this.screenW+gs, ey = sy+this.screenH+gs;
-        for (let x = sx; x <= ex; x += gs) { ctx.beginPath(); ctx.moveTo(x,sy); ctx.lineTo(x,ey); ctx.stroke(); }
-        for (let y = sy; y <= ey; y += gs) { ctx.beginPath(); ctx.moveTo(sx,y); ctx.lineTo(ex,y); ctx.stroke(); }
-        ctx.strokeStyle = c.borderColor; ctx.lineWidth = 3;
-        ctx.strokeRect(0, 0, this.WORLD_WIDTH, this.WORLD_HEIGHT);
+        const sx = Math.floor(left / gs) * gs;
+        const sy = Math.floor(top / gs) * gs;
+        for (let x = sx; x <= right; x += gs) {
+            ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+        }
+        for (let y = sy; y <= bottom; y += gs) {
+            ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+        }
     }
 
     _drawFrostAura(ctx) {

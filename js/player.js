@@ -176,8 +176,7 @@ class Player {
         this.x += this.vx;
         this.y += this.vy;
 
-        this.x = Utils.clamp(this.x, this.size, worldWidth - this.size);
-        this.y = Utils.clamp(this.y, this.size, worldHeight - this.size);
+        // no world boundary — infinite map
 
         this.attackTimer = Math.max(0, this.attackTimer - 1);
 
