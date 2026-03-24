@@ -2,64 +2,168 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>NumTick - 자동 슈팅 서바이벌</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
+
         <div id="ui-overlay">
-            <div id="hud">
-                <div id="hp-bar-container">
-                    <div id="hp-bar"></div>
-                    <span id="hp-text"></span>
+            <!-- In-Game HUD -->
+            <div id="hud" class="hidden">
+                <div id="hud-top">
+                    <div id="hud-top-left">
+                        <div id="hp-bar-container">
+                            <div id="hp-bar"></div>
+                            <span id="hp-text"></span>
+                        </div>
+                        <div id="exp-bar-container">
+                            <div id="exp-bar"></div>
+                            <span id="level-text"></span>
+                        </div>
+                    </div>
+                    <div id="hud-top-right">
+                        <div id="wave-display">Wave 1/5</div>
+                        <div id="wave-progress-container">
+                            <div id="wave-progress-bar"></div>
+                        </div>
+                    </div>
                 </div>
-                <div id="exp-bar-container">
-                    <div id="exp-bar"></div>
-                    <span id="level-text"></span>
-                </div>
-                <div id="stats-display">
-                    <span id="kill-count">처치: 0</span>
+                <div id="hud-bottom-info">
+                    <span id="kill-count">0</span>
+                    <span id="gold-ingame">0</span>
                     <span id="time-display">00:00</span>
-                    <span id="stage-display">스테이지 1</span>
+                </div>
+                <button id="pause-btn">⏸</button>
+            </div>
+
+            <!-- Virtual Joystick Area (touch only) -->
+            <div id="joystick-zone"></div>
+
+            <!-- Title Screen -->
+            <div id="title-screen">
+                <div class="title-bg-particles"></div>
+                <div class="title-content">
+                    <div class="title-logo">
+                        <span class="title-num">Num</span><span class="title-tick">Tick</span>
+                    </div>
+                    <p class="title-subtitle">자동 슈팅 서바이벌</p>
+                    <div class="title-buttons">
+                        <button id="btn-adventure" class="btn-primary">모험 시작</button>
+                        <button id="btn-shop" class="btn-secondary">상점</button>
+                    </div>
+                    <div id="title-gold" class="gold-display">
+                        <span class="gold-icon">🪙</span>
+                        <span id="title-gold-amount">0</span>
+                    </div>
                 </div>
             </div>
 
+            <!-- Stage Select Screen -->
+            <div id="stage-select-screen" class="hidden">
+                <div class="screen-header">
+                    <button class="btn-back" id="stage-back-btn">←</button>
+                    <h2 id="chapter-title">챕터 1: 수풀 숲</h2>
+                    <div class="gold-display">
+                        <span class="gold-icon">🪙</span>
+                        <span id="stage-gold-amount">0</span>
+                    </div>
+                </div>
+                <div id="chapter-tabs"></div>
+                <div id="stage-grid"></div>
+                <div id="stage-detail" class="hidden">
+                    <div id="stage-detail-content"></div>
+                </div>
+            </div>
+
+            <!-- Shop Screen -->
+            <div id="shop-screen" class="hidden">
+                <div class="screen-header">
+                    <button class="btn-back" id="shop-back-btn">←</button>
+                    <h2>상점</h2>
+                    <div class="gold-display">
+                        <span class="gold-icon">🪙</span>
+                        <span id="shop-gold-amount">0</span>
+                    </div>
+                </div>
+                <div id="shop-grid"></div>
+            </div>
+
+            <!-- Skill Selection (Level Up) -->
             <div id="skill-selection" class="hidden">
-                <h2>레벨 업!</h2>
-                <div id="skill-options"></div>
-            </div>
-
-            <div id="start-screen">
-                <h1>NumTick</h1>
-                <p class="subtitle">자동 슈팅 서바이벌</p>
-                <button id="start-btn">게임 시작</button>
-                <div class="controls-info">
-                    <p>이동: WASD / 방향키</p>
-                    <p>공격: 자동</p>
-                    <p>목표: 최대한 오래 생존하라!</p>
+                <div class="skill-selection-inner">
+                    <h2>레벨 업!</h2>
+                    <div id="skill-options"></div>
                 </div>
             </div>
 
-            <div id="game-over-screen" class="hidden">
-                <h1>게임 오버</h1>
-                <div id="game-over-stats"></div>
-                <button id="restart-btn">다시 시작</button>
+            <!-- Wave Announcement -->
+            <div id="wave-announce" class="hidden">
+                <div class="wave-announce-inner">
+                    <span id="wave-announce-text">Wave 1</span>
+                </div>
             </div>
 
+            <!-- Boss Warning -->
             <div id="boss-warning" class="hidden">
-                <span>⚠ 보스 출현 ⚠</span>
+                <div class="boss-warning-inner">
+                    <span class="boss-warning-icon">⚠</span>
+                    <span class="boss-warning-text">보스 출현</span>
+                    <span class="boss-warning-icon">⚠</span>
+                </div>
+            </div>
+
+            <!-- Stage Clear Screen -->
+            <div id="stage-clear-screen" class="hidden">
+                <div class="stage-clear-inner">
+                    <h1 id="clear-title">스테이지 클리어!</h1>
+                    <div id="clear-stars"></div>
+                    <div id="clear-stats"></div>
+                    <div id="clear-rewards"></div>
+                    <div class="clear-buttons">
+                        <button id="btn-clear-next" class="btn-primary">다음 스테이지</button>
+                        <button id="btn-clear-home" class="btn-secondary">홈으로</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="hidden">
+                <div class="gameover-inner">
+                    <h1>실패...</h1>
+                    <div id="game-over-stats"></div>
+                    <div class="gameover-buttons">
+                        <button id="btn-retry" class="btn-primary">다시 도전</button>
+                        <button id="btn-gameover-home" class="btn-secondary">홈으로</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pause Screen -->
+            <div id="pause-screen" class="hidden">
+                <div class="pause-inner">
+                    <h2>일시정지</h2>
+                    <button id="btn-resume" class="btn-primary">계속하기</button>
+                    <button id="btn-quit" class="btn-secondary">포기하기</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="js/utils.js"></script>
+    <script src="js/save.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/projectiles.js"></script>
     <script src="js/enemies.js"></script>
     <script src="js/skills.js"></script>
     <script src="js/player.js"></script>
+    <script src="js/stages.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/touch.js"></script>
     <script src="js/game.js"></script>
     <script src="js/main.js"></script>
 </body>

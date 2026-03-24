@@ -66,6 +66,9 @@ class Player {
         this.level = 1;
         this.exp = 0;
         this.expToNext = 20;
+        this.expMult = 1;
+        this.goldMult = 1;
+        this.startLevel = 1;
 
         this.baseDamage = 10;
         this.damageMult = 1;
@@ -111,7 +114,7 @@ class Player {
         return Math.round(this.baseDamage * this.damageMult);
     }
 
-    update(keys, worldWidth, worldHeight) {
+    update(keys, worldWidth, worldHeight, joyDir) {
         this.animPhase += 0.15;
         this.invincible = Math.max(0, this.invincible - 1);
 
@@ -120,6 +123,11 @@ class Player {
         if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
         if (keys['ArrowUp'] || keys['KeyW']) dy -= 1;
         if (keys['ArrowDown'] || keys['KeyS']) dy += 1;
+
+        if (joyDir && (joyDir.x !== 0 || joyDir.y !== 0)) {
+            dx = joyDir.x;
+            dy = joyDir.y;
+        }
 
         this.moving = dx !== 0 || dy !== 0;
         if (this.moving) {
@@ -279,22 +287,31 @@ class Player {
     reset(x, y) {
         this.x = x;
         this.y = y;
+        this.baseMaxHp = 100;
         this.maxHp = this.baseMaxHp;
         this.hp = this.maxHp;
         this.level = 1;
         this.exp = 0;
         this.expToNext = 20;
+        this.expMult = 1;
+        this.goldMult = 1;
+        this.startLevel = 1;
+        this.baseDamage = 10;
+        this.baseAttackCooldown = 30;
+        this.baseSpeed = 3;
         this.damageMult = 1;
         this.attackSpeedMult = 1;
         this.moveSpeedMult = 1;
         this.projectileCount = 1;
         this.pierceCount = 0;
+        this.projectileSpeed = 8;
         this.homingLevel = 0;
         this.aoeRadius = 0;
         this.orbitalCount = 0;
         this.orbitals = [];
         this.lightningLevel = 0;
         this.lightningCooldown = 0;
+        this.lightningCooldownMax = 180;
         this.hpRegen = 0;
         this.magnetRange = 80;
         this.kills = 0;
