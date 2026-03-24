@@ -190,10 +190,10 @@ class Game {
 
         const totalToSpawn = this._getWaveEnemyCount(waveDef);
         const waveDuration = waveDef.duration * 60;
-        const spawnInterval = Math.max(4, Math.floor(waveDuration / (totalToSpawn + 1)));
+        const spawnInterval = Math.max(3, Math.floor(waveDuration / (totalToSpawn + 1)));
 
         if (this.waveEnemiesSpawned < totalToSpawn && this.waveTimer % spawnInterval === 0) {
-            const batchSize = Math.min(3, totalToSpawn - this.waveEnemiesSpawned);
+            const batchSize = Math.min(5, totalToSpawn - this.waveEnemiesSpawned);
             for (let i = 0; i < batchSize; i++) this._spawnWaveEnemy(waveDef);
         }
 
@@ -214,7 +214,7 @@ class Game {
 
     _generateEndlessWave() {
         const d = this.endlessDifficulty;
-        const budget = Math.round(80 + this.endlessWave * 20 * d);
+        const budget = Math.round(120 + this.endlessWave * 30 * d);
         const enemies = [];
         const types = ['normal','fast','tank','ranged','swarm','exploder'];
         let remaining = budget;
