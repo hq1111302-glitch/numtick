@@ -684,6 +684,32 @@ body {
     flex: 1;
 }
 
+.weapon-slot-info {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.weapon-slot-info strong {
+    color: #4ecdc4;
+}
+
+.new-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    background: linear-gradient(135deg, #ff6b35, #ff4444);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
 .synergy-badge {
     display: inline-block;
     margin-top: 4px;

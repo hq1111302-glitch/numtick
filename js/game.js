@@ -190,10 +190,11 @@ class Game {
 
         const totalToSpawn = this._getWaveEnemyCount(waveDef);
         const waveDuration = waveDef.duration * 60;
-        const spawnInterval = Math.max(8, Math.floor(waveDuration / (totalToSpawn + 1)));
+        const spawnInterval = Math.max(4, Math.floor(waveDuration / (totalToSpawn + 1)));
 
         if (this.waveEnemiesSpawned < totalToSpawn && this.waveTimer % spawnInterval === 0) {
-            this._spawnWaveEnemy(waveDef);
+            const batchSize = Math.min(3, totalToSpawn - this.waveEnemiesSpawned);
+            for (let i = 0; i < batchSize; i++) this._spawnWaveEnemy(waveDef);
         }
 
         if (this.waveEnemiesSpawned >= totalToSpawn && this.enemies.length === 0) {
@@ -213,7 +214,7 @@ class Game {
 
     _generateEndlessWave() {
         const d = this.endlessDifficulty;
-        const budget = Math.round(30 + this.endlessWave * 8 * d);
+        const budget = Math.round(80 + this.endlessWave * 20 * d);
         const enemies = [];
         const types = ['normal','fast','tank','ranged','swarm','exploder'];
         let remaining = budget;
@@ -224,7 +225,7 @@ class Game {
             const c = costs[t];
             const max = Math.floor(remaining / c);
             if (max <= 0) break;
-            const count = Utils.randomInt(1, Math.min(max, 10));
+            const count = Utils.randomInt(1, Math.min(max, 20));
             enemies.push({ type: t, count });
             remaining -= count * c;
         }
@@ -844,15 +845,23 @@ class Game {
     _showSkillSelection(choices) {
         const container = document.getElementById('skill-options');
         container.innerHTML = '';
+
+        const owned = this.skillManager.getOwnedWeaponCount();
+        const slotInfo = document.createElement('div');
+        slotInfo.className = 'weapon-slot-info';
+        slotInfo.innerHTML = `무기 슬롯: <strong>${owned}</strong> / ${MAX_WEAPONS}`;
+        container.appendChild(slotInfo);
+
         choices.forEach(choice => {
             const card = document.createElement('div');
             card.className = 'skill-card';
             const synergyBadge = choice.synergyHint ?
                 `<div class="synergy-badge">→ ${choice.synergyHint}</div>` : '';
+            const newBadge = choice.isNew ? '<span class="new-badge">NEW</span>' : '';
             card.innerHTML = `
                 <div class="skill-icon">${choice.icon}</div>
                 <div class="skill-info">
-                    <div class="skill-name">${choice.name}</div>
+                    <div class="skill-name">${choice.name} ${newBadge}</div>
                     <div class="skill-desc">${choice.description}</div>
                     <div class="skill-level">Lv.${choice.currentLevel} → Lv.${choice.currentLevel + 1}</div>
                     ${synergyBadge}
@@ -994,6 +1003,64 @@ class Game {
         this._drawFlameEffect(ctx);
         this.player.draw(ctx);
         this.particleSystem.draw(ctx);
+
+        ctx.restore();
+
+        this._drawMinimap(this.ctx);
+    }
+
+    _drawMinimap(ctx) {
+        const mapSize = 110;
+        const padding = 12;
+        const mx = this.screenW - mapSize - padding;
+        const my = this.screenH - mapSize - padding;
+        const viewRange = 800;
+        const scale = mapSize / (viewRange * 2);
+
+        ctx.save();
+        ctx.globalAlpha = 0.65;
+
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.beginPath();
+        ctx.arc(mx + mapSize / 2, my + mapSize / 2, mapSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(mx + mapSize / 2, my + mapSize / 2, mapSize / 2, 0, Math.PI * 2);
+        ctx.clip();
+
+        const centerX = mx + mapSize / 2;
+        const centerY = my + mapSize / 2;
+
+        for (const e of this.enemies) {
+            const dx = (e.x - this.player.x) * scale;
+            const dy = (e.y - this.player.y) * scale;
+            if (Math.abs(dx) > mapSize / 2 || Math.abs(dy) > mapSize / 2) continue;
+            ctx.fillStyle = e.isBoss ? '#ff0000' : '#ff6666';
+            const s = e.isBoss ? 4 : 2;
+            ctx.beginPath();
+            ctx.arc(centerX + dx, centerY + dy, s, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        for (const orb of this.expOrbs) {
+            const dx = (orb.x - this.player.x) * scale;
+            const dy = (orb.y - this.player.y) * scale;
+            if (Math.abs(dx) > mapSize / 2 || Math.abs(dy) > mapSize / 2) continue;
+            ctx.fillStyle = '#44ff88';
+            ctx.fillRect(centerX + dx - 1, centerY + dy - 1, 2, 2);
+        }
+
+        ctx.fillStyle = '#4ecdc4';
+        ctx.shadowColor = '#4ecdc4';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
 
         ctx.restore();
     }

@@ -48,8 +48,8 @@ function generateWaves(chapterIdx, stageIdx) {
 
     for (let w = 0; w < waveCount; w++) {
         const enemies = [];
-        const waveScale = 1 + w * 0.3;
-        const totalBudget = Math.round((8 + difficulty * 2.5 + w * 3) * waveScale);
+        const waveScale = 1 + w * 0.4;
+        const totalBudget = Math.round((20 + difficulty * 6 + w * 8) * waveScale);
 
         const costs = { normal: 1, fast: 1.2, tank: 3, ranged: 2, swarm: 0.5, exploder: 2.5 };
 
