@@ -1,0 +1,20 @@
+{
+  "appId": "com.numtick.game",
+  "appName": "NumTick",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#0a0a0a"
+    },
+    "Keyboard": {
+      "resize": "none"
+    }
+  }
+}
