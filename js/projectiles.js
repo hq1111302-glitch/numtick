@@ -18,6 +18,7 @@ class Projectile {
         this.homingStrength = options.homingStrength || 0.03;
         this.aoe = options.aoe || 0;
         this.knockback = options.knockback || 2;
+        this.isMissile = options.isMissile || false;
     }
 
     update(enemies) {

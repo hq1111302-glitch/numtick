@@ -292,13 +292,15 @@ class Boss extends Enemy {
         }
 
         const angle = Utils.angle(this.x, this.y, playerX, playerY);
+        const slowMult = this.slowAmount > 0 ? (1 - this.slowAmount * 0.5) : 1;
+        const moveSpeed = this.speed * slowMult;
 
         if (this.currentAbility === 'charge') {
-            this.x += this.knockbackX + Math.cos(angle) * this.speed * 4;
-            this.y += this.knockbackY + Math.sin(angle) * this.speed * 4;
+            this.x += this.knockbackX + Math.cos(angle) * moveSpeed * 4;
+            this.y += this.knockbackY + Math.sin(angle) * moveSpeed * 4;
         } else {
-            this.x += this.knockbackX + Math.cos(angle) * this.speed;
-            this.y += this.knockbackY + Math.sin(angle) * this.speed;
+            this.x += this.knockbackX + Math.cos(angle) * moveSpeed;
+            this.y += this.knockbackY + Math.sin(angle) * moveSpeed;
         }
 
         if (this.abilityDuration <= 0) {

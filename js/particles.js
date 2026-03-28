@@ -57,7 +57,7 @@ class DamageNumber {
         this.maxLife = 40;
         this.vy = -2;
         this.vx = Utils.randomRange(-0.5, 0.5);
-        this.size = Math.min(20, 12 + value / 10);
+        this.size = typeof value === 'number' ? Math.min(20, 12 + value / 10) : 14;
     }
 
     update() {

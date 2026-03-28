@@ -29,6 +29,8 @@ class Game {
         this.isEndless = false;
         this.endlessWave = 0;
         this.endlessDifficulty = 1;
+        this._cachedEndlessWave = null;
+        this._cachedEndlessWaveIdx = -1;
 
         this.gameTime = 0;
         this.goldEarned = 0;
@@ -77,6 +79,8 @@ class Game {
         this.isEndless = !!this.stageConfig.isEndless;
         this.endlessWave = 0;
         this.endlessDifficulty = 1;
+        this._cachedEndlessWave = null;
+        this._cachedEndlessWaveIdx = -1;
 
         this.state = 'playing';
         this.gameTime = 0;
@@ -207,7 +211,11 @@ class Game {
         if (!this.stageConfig) return null;
 
         if (this.isEndless && this.currentWave >= this.stageConfig.waves.length) {
-            return this._generateEndlessWave();
+            if (this._cachedEndlessWaveIdx !== this.endlessWave) {
+                this._cachedEndlessWave = this._generateEndlessWave();
+                this._cachedEndlessWaveIdx = this.endlessWave;
+            }
+            return this._cachedEndlessWave;
         }
         return this.stageConfig.waves[this.currentWave] || null;
     }
@@ -872,14 +880,16 @@ class Game {
                 </div>
             `;
             card.addEventListener('click', () => {
+                const prevSynCount = this.skillManager.activeSynergies.size;
+
                 if (choice.category === 'weapon') {
                     this.skillManager.upgradeWeapon(choice.id, this.player);
                 } else {
                     this.skillManager.upgradePassive(choice.id, this.player);
                 }
 
-                const synergies = this.skillManager.getActiveSynergyList();
-                if (synergies.length > 0) {
+                if (this.skillManager.activeSynergies.size > prevSynCount) {
+                    const synergies = this.skillManager.getActiveSynergyList();
                     this._showSynergyNotification(synergies[synergies.length - 1]);
                 }
 
