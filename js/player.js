@@ -469,6 +469,8 @@ class Player {
         this.frostSlow = 0;
         this.frostDps = 0;
         this.hpRegen = 0;
+        this.regenTimer = 0;
+        this.attackTimer = 0;
         this.magnetRange = 80;
         this.kills = 0;
         this.damageDealt = 0;

@@ -448,6 +448,7 @@ class Game {
     _findClosest(range) {
         let closest = null, cd = Infinity;
         for (const e of this.enemies) {
+            if (!e.alive) continue;
             const d = Utils.distance(this.player.x, this.player.y, e.x, e.y);
             if (d < cd && d < range) { cd = d; closest = e; }
         }
@@ -687,7 +688,7 @@ class Game {
                           p.laserAngle + (Math.PI * 2 / beamCount) * b;
 
             const len = 800;
-            const dmgPerTick = Math.round(p.damage * 0.4 * p.damageMult);
+            const dmgPerTick = Math.round(p.damage * 0.4);
             const width = p.laserWidth + (this.player.synergies.plasmaLaser ? 6 : 0);
 
             if (this.gameTime % 6 === 0) {
@@ -744,7 +745,7 @@ class Game {
                 if (Math.abs(diff) > halfAngle) continue;
             }
 
-            const dmg = Math.round(p.damage * 0.35 * p.damageMult);
+            const dmg = Math.round(p.damage * 0.35);
             enemy.takeDamage(dmg);
             enemy.burning = true;
             enemy.burnTimer = 90;
@@ -767,7 +768,8 @@ class Game {
             }
             if (enemy.type === 'exploder' && enemy.exploding) {
                 this.particleSystem.emitCircle(enemy.x, enemy.y, 20, 5, { color: '#ff4488', life: 25, size: 5, glow: true });
-                enemy.alive = false;
+                enemy.takeDamage(enemy.hp);
+                this._checkEnemyDeath(enemy);
                 this.shakeScreen(10, 6);
             }
         }
@@ -816,7 +818,8 @@ class Game {
     }
 
     _checkEnemyDeath(enemy) {
-        if (!enemy.alive) {
+        if (!enemy.alive && !enemy._deathHandled) {
+            enemy._deathHandled = true;
             this.player.kills++;
             this.waveTotalKills++;
             this.expOrbs.push(new ExpOrb(enemy.x, enemy.y, enemy.exp));

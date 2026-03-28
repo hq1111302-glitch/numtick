@@ -368,7 +368,8 @@ class SkillManager {
                 category: 'passive', id, icon: def.icon, name: def.name,
                 description: def.description(lvl + 1),
                 currentLevel: lvl, maxLevel: def.maxLevel,
-                weight: focused ? (isOwned ? 1.5 : 0.5) : 0.8
+                weight: focused ? (isOwned ? 1.5 : 0.5) : 0.8,
+                isNew: !isOwned
             });
         }
 
