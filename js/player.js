@@ -285,37 +285,119 @@ class Player {
         }
 
         const bob = this.moving ? Math.sin(this.animPhase * 2) * 2 : Math.sin(this.animPhase * 0.5) * 1;
+        const px = this.x;
+        const py = this.y + bob;
+        const f = this.facing;
+        const s = this.size;
 
+        // jetpack flame
+        if (this.moving) {
+            const flicker = Math.sin(this.animPhase * 6) * 2;
+            ctx.fillStyle = '#ff6622';
+            ctx.beginPath();
+            ctx.moveTo(px - f * 4 - 4, py + s * 0.5);
+            ctx.lineTo(px - f * 4, py + s + 4 + flicker);
+            ctx.lineTo(px - f * 4 + 4, py + s * 0.5);
+            ctx.fill();
+            ctx.fillStyle = '#ffcc22';
+            ctx.beginPath();
+            ctx.moveTo(px - f * 4 - 2, py + s * 0.5);
+            ctx.lineTo(px - f * 4, py + s + flicker);
+            ctx.lineTo(px - f * 4 + 2, py + s * 0.5);
+            ctx.fill();
+        }
+
+        // jetpack
+        ctx.fillStyle = '#556677';
+        ctx.fillRect(px - f * 4 - 5, py - 2, 10, s * 0.8);
+        ctx.fillStyle = '#ff4422';
+        ctx.beginPath();
+        ctx.arc(px - f * 4, py - 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // body (spacesuit)
         ctx.shadowColor = '#4ecdc4';
-        ctx.shadowBlur = 15;
-
-        ctx.fillStyle = '#2a5a6a';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#dde8f0';
         ctx.beginPath();
-        ctx.arc(this.x, this.y + bob, this.size, 0, Math.PI * 2);
+        ctx.ellipse(px, py + 3, s * 0.65, s * 0.8, 0, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
+        // suit belt
+        ctx.fillStyle = '#667788';
+        ctx.fillRect(px - s * 0.6, py + 2, s * 1.2, 3);
+
+        // suit emblem
         ctx.fillStyle = '#4ecdc4';
         ctx.beginPath();
-        ctx.arc(this.x, this.y + bob, this.size * 0.75, 0, Math.PI * 2);
+        ctx.arc(px + f * 3, py - 1, 3, 0, Math.PI * 2);
         ctx.fill();
 
-        const eyeX = this.facing * 4;
-        ctx.fillStyle = '#fff';
+        // helmet (globe shape)
+        const hx = px + f * 1;
+        const hy = py - s * 0.55;
+        ctx.fillStyle = '#eef4f8';
         ctx.beginPath();
-        ctx.arc(this.x + eyeX - 3, this.y + bob - 2, 4, 0, Math.PI * 2);
-        ctx.arc(this.x + eyeX + 3, this.y + bob - 2, 4, 0, Math.PI * 2);
+        ctx.arc(hx, hy, s * 0.65, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#1a1a2e';
+        // helmet ring
+        ctx.strokeStyle = '#99aabb';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(this.x + eyeX - 3 + this.facing, this.y + bob - 2, 2, 0, Math.PI * 2);
-        ctx.arc(this.x + eyeX + 3 + this.facing, this.y + bob - 2, 2, 0, Math.PI * 2);
+        ctx.arc(hx, hy, s * 0.65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // visor (reflective)
+        const visorGrad = ctx.createLinearGradient(hx - s * 0.4, hy - s * 0.3, hx + s * 0.4, hy + s * 0.3);
+        visorGrad.addColorStop(0, '#225588');
+        visorGrad.addColorStop(0.5, '#44bbdd');
+        visorGrad.addColorStop(1, '#2266aa');
+        ctx.fillStyle = visorGrad;
+        ctx.beginPath();
+        ctx.ellipse(hx + f * 2, hy, s * 0.45, s * 0.4, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#4ecdc4';
+        // visor shine
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
         ctx.beginPath();
-        ctx.arc(this.x - this.facing * 2, this.y + bob + 5, 3, 0, Math.PI * 2);
+        ctx.ellipse(hx + f * 2 - 3, hy - 3, 3, 2, -0.5, 0, Math.PI * 2);
         ctx.fill();
+
+        // antenna
+        ctx.strokeStyle = '#99aabb';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy - s * 0.65);
+        ctx.lineTo(hx + 2, hy - s * 1.1);
+        ctx.stroke();
+        const antennaGlow = Math.sin(this.animPhase * 2) * 0.3 + 0.7;
+        ctx.fillStyle = `rgba(78, 205, 196, ${antennaGlow})`;
+        ctx.shadowColor = '#4ecdc4';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(hx + 2, hy - s * 1.1, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // legs
+        const legPhase = this.moving ? Math.sin(this.animPhase * 3) * 4 : 0;
+        ctx.strokeStyle = '#dde8f0';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(px - 4, py + s * 0.6);
+        ctx.lineTo(px - 5 + legPhase, py + s + 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(px + 4, py + s * 0.6);
+        ctx.lineTo(px + 5 - legPhase, py + s + 2);
+        ctx.stroke();
+
+        // boots
+        ctx.fillStyle = '#556677';
+        ctx.fillRect(px - 7 + legPhase, py + s, 5, 3);
+        ctx.fillRect(px + 3 - legPhase, py + s, 5, 3);
 
         this.orbitals.forEach(orb => orb.draw(ctx));
 
